@@ -203,7 +203,7 @@ const data = {
   
       
       let tarjetaEvento = document.createElement('div');
-      tarjetaEvento.classList.add('col-lg-3', 'col-md-6', 'd-flex', 'justify-content-center', 'my-1');
+      
   
       
       tarjetaEvento.innerHTML = `
@@ -223,3 +223,162 @@ const data = {
       
       contenedorEventos.appendChild(tarjetaEvento);
     }
+
+
+// Obtener una lista de categorías únicas
+const categorias = [...new Set(data.events.map(evento => evento.category))];
+
+// Función para generar las casillas de verificación de categorías
+function generarCasillasCategorias(contenedorId, categorias) {
+  const contenedor = document.getElementById(contenedorId);
+
+  categorias.forEach(categoria => {
+    // Crear el input de tipo checkbox
+    const casilla = document.createElement('input');
+    casilla.type = 'checkbox';
+    casilla.id = categoria;
+    casilla.value = categoria;
+    casilla.checked = false; // Marcado por defecto
+    casilla.classList.add('form-check-input');
+
+    // Crear el label asociado al checkbox
+    const etiqueta = document.createElement('label');
+    etiqueta.htmlFor = categoria;
+    etiqueta.textContent = categoria;
+    etiqueta.classList.add('form-check-label');
+
+
+    // Agregar el checkbox y el label al contenedor
+    contenedor.appendChild(casilla);
+    contenedor.appendChild(etiqueta);
+  });
+}
+
+// Llamar a la función para generar las casillas de verificación en el contenedor deseado
+generarCasillasCategorias('categoriaFiltros', categorias); // Reemplaza 'categoryFilters' con el ID de tu contenedor
+
+// Función para filtrar eventos según las categorías seleccionadas
+function filtrarPorCategoria() {
+  // Obtener las categorías seleccionadas
+  const categoriasSeleccionadas = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+
+  // Mostrar todos los eventos si no se ha seleccionado ninguna categoría
+  if (categoriasSeleccionadas.length === 0) {
+      contenedorEventos1.innerHTML = '';
+      data.events.forEach(evento => {
+          mostrarEvento(evento);
+      });
+      return;
+  }
+
+  // Filtrar eventos por categorías seleccionadas
+  const eventosFiltrados = data.events.filter(evento => categoriasSeleccionadas.includes(evento.category));
+
+  // Mostrar eventos filtrados
+  contenedorEventos1.innerHTML = '';
+  eventosFiltrados.forEach(evento => {
+      mostrarEvento(evento);
+  });
+}
+
+// Función para mostrar un evento en la lista de eventos
+function mostrarEvento(evento) {
+  const tarjetaEvento = document.createElement('div');
+  tarjetaEvento.innerHTML = `
+      <div class="card h-100" style="width: 15rem;">
+          <img src="${evento.image}" class="card-img-top " alt="${evento.name}">
+          <div class="card-body">
+              <h5 class="card-title d-flex justify-content-center">${evento.name}</h5>
+              <p class="card-text d-flex justify-content-center">${evento.description}</p>
+          </div>
+          <div class="  card-body d-flex justify-content-between align-items-center">
+              <p class=" m-0" >Price: ${evento.price}</p>
+              <a href="./details.html" class="card-link text-decoration-none">Details</a>
+          </div>
+      </div>
+  `;
+  contenedorEventos1.appendChild(tarjetaEvento);
+}
+
+// Evento de escucha para cambios en los checkboxes
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+  checkbox.addEventListener('change', filtrarPorCategoria);
+});
+
+
+
+
+
+const contenedorEventos1 = document.querySelector('#contenedorEventos');
+const searchInput = document.getElementById('searchInput');
+
+// Función para filtrar eventos según el término de búsqueda
+function filtrarEventos(termino) {
+    // Limpiar el contenedor de eventos
+    contenedorEventos1.innerHTML = '';
+
+    // Filtrar eventos que coincidan con el término de búsqueda
+    const eventosFiltrados = data.events.filter(evento => {
+        const nombreEnMinuscula = evento.name.toLowerCase();
+        const descripcionEnMinuscula = evento.description.toLowerCase();
+        const terminoEnMinuscula = termino.toLowerCase();
+        return nombreEnMinuscula.includes(terminoEnMinuscula) || descripcionEnMinuscula.includes(terminoEnMinuscula);
+    });
+
+    // Mostrar eventos filtrados
+    eventosFiltrados.forEach(evento => {
+        const tarjetaEvento = document.createElement('div');
+        tarjetaEvento.innerHTML = `
+            <div class="card h-100" style="width: 15rem;">
+                <img src="${evento.image}" class="card-img-top " alt="${evento.name}">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-center">${evento.name}</h5>
+                    <p class="card-text d-flex justify-content-center">${evento.description}</p>
+                </div>
+                <div class="  card-body d-flex justify-content-between align-items-center">
+                    <p class=" m-0" >Price: ${evento.price}</p>
+                    <a href="./details.html" class="card-link text-decoration-none">Details</a>
+                </div>
+            </div>
+        `;
+        contenedorEventos1.appendChild(tarjetaEvento);
+    });
+}
+
+// Evento de escucha para el campo de búsqueda
+searchInput.addEventListener('input', () => {
+    filtrarEventos(searchInput.value);
+});
+
+
+// Función para filtrar eventos según las categorías seleccionadas y el término de búsqueda
+function filtrarEventos() {
+  const termino = searchInput.value.toLowerCase();
+  const categoriasSeleccionadas = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+
+  const eventosFiltrados = data.events.filter(evento => {
+      const nombreEnMinuscula = evento.name.toLowerCase();
+      const descripcionEnMinuscula = evento.description.toLowerCase();
+      const cumpleTermino = nombreEnMinuscula.includes(termino) || descripcionEnMinuscula.includes(termino);
+      const cumpleCategorias = categoriasSeleccionadas.length === 0 || categoriasSeleccionadas.includes(evento.category);
+      return cumpleTermino && cumpleCategorias;
+  });
+
+  // Mostrar eventos filtrados
+  if (eventosFiltrados.length === 0) {
+    contenedorEventos1.innerHTML = '<p class="text-center" style="margin-bottom: 10vw;">No se encontraron eventos que coincidan con los criterios de búsqueda.</p>';
+  } else {
+    contenedorEventos1.innerHTML = '';
+    eventosFiltrados.forEach(evento => {
+      mostrarEvento(evento);
+    });
+  }
+}
+
+// Evento de escucha para cambios en los checkboxes
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+  checkbox.addEventListener('change', filtrarEventos);
+});
+
+// Evento de escucha para el campo de búsqueda
+searchInput.addEventListener('input', filtrarEventos);
